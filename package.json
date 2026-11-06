@@ -1,0 +1,21 @@
+{
+  "name": "desafio_teste_truco",
+  "version": "1.0.0",
+  "description": "Casos de teste em JavaScript (Jest) para o jogo de Truco Paulista (02 duplas)",
+  "main": "src/truco.js",
+  "scripts": {
+    "test": "jest --verbose"
+  },
+  "keywords": [
+    "truco",
+    "truco-paulista",
+    "testes",
+    "jest",
+    "javascript"
+  ],
+  "author": "ViniciusRFerreira",
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}
