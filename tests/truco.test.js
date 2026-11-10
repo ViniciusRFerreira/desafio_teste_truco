@@ -29,10 +29,14 @@ describe('Truco Paulista (02 Duplas) - Suíte de Casos de Teste', () => {
   describe('2. Definição do Vira, Manilha Variável e Hierarquia de Cartas', () => {
     test('CT03 - Deve definir corretamente a Manilha como a carta seguinte ao Vira na ordem cíclica', () => {
       expect(obterValorManilha(new Carta('4', 'Ouros'))).toBe('5');
+      expect(obterValorManilha(new Carta('5', 'Espadas'))).toBe('6');
+      expect(obterValorManilha(new Carta('6', 'Copas'))).toBe('7');
       expect(obterValorManilha(new Carta('7', 'Copas'))).toBe('Q');
       expect(obterValorManilha(new Carta('Q', 'Espadas'))).toBe('J');
       expect(obterValorManilha(new Carta('J', 'Paus'))).toBe('K');
       expect(obterValorManilha(new Carta('K', 'Ouros'))).toBe('A');
+      expect(obterValorManilha(new Carta('A', 'Espadas'))).toBe('2');
+      expect(obterValorManilha(new Carta('2', 'Copas'))).toBe('3');
       expect(obterValorManilha(new Carta('3', 'Paus'))).toBe('4'); // Cíclico: Vira 3 -> Manilha 4
     });
 
@@ -317,6 +321,93 @@ describe('Truco Paulista (02 Duplas) - Suíte de Casos de Teste', () => {
 
       partida.jogarCarta('J1', 0);
       expect(() => partida.jogarCarta('J1', 0)).toThrow('O jogador J1 já jogou nesta rodada');
+    });
+
+    test('CT18 - Empate na 2ª rodada ([1, 0]) e empate na 3ª rodada ([2, 1, 0]) em mãos jogadas: vence quem ganhou a 1ª rodada', () => {
+      // Cenário A: Dupla 1 vence a 1ª rodada e a 2ª rodada empata ([1, 0]) -> Dupla 1 vence a mão
+      const partidaA = new PartidaTrucoPaulista();
+      partidaA.iniciarNovaMao();
+      partidaA.vira = new Carta('4', 'Ouros'); // Manilha: 5
+
+      partidaA.jogadores[0].mao = [new Carta('5', 'Paus'), new Carta('3', 'Copas'), new Carta('7', 'Paus')];
+      partidaA.jogadores[1].mao = [new Carta('2', 'Espadas'), new Carta('3', 'Paus'), new Carta('6', 'Espadas')];
+      partidaA.jogadores[2].mao = [new Carta('4', 'Copas'), new Carta('6', 'Ouros'), new Carta('Q', 'Ouros')];
+      partidaA.jogadores[3].mao = [new Carta('4', 'Espadas'), new Carta('6', 'Copas'), new Carta('J', 'Copas')];
+
+      for (let rodada = 0; rodada < 2; rodada++) {
+        for (const id of ['J1', 'J2', 'J3', 'J4']) {
+          partidaA.jogarCarta(id, 0);
+        }
+      }
+      expect(partidaA.resultadosVazas).toEqual([1, 0]);
+      expect(partidaA.maoEncerrada).toBe(true);
+      expect(partidaA.vencedorMao).toBe(1);
+      expect(partidaA.duplas[1].pontos).toBe(1);
+
+      // Cenário B: Dupla 2 vence a 1ª, Dupla 1 vence a 2ª e a 3ª empata ([2, 1, 0]) -> Dupla 2 vence a mão
+      const partidaB = new PartidaTrucoPaulista();
+      partidaB.iniciarNovaMao();
+      partidaB.vira = new Carta('4', 'Ouros'); // Manilha: 5
+
+      partidaB.jogadores[0].mao = [new Carta('2', 'Copas'), new Carta('5', 'Paus'), new Carta('A', 'Copas')];
+      partidaB.jogadores[1].mao = [new Carta('5', 'Copas'), new Carta('2', 'Ouros'), new Carta('A', 'Paus')];
+      partidaB.jogadores[2].mao = [new Carta('4', 'Copas'), new Carta('6', 'Ouros'), new Carta('7', 'Ouros')];
+      partidaB.jogadores[3].mao = [new Carta('4', 'Espadas'), new Carta('6', 'Copas'), new Carta('7', 'Copas')];
+
+      for (let rodada = 0; rodada < 3; rodada++) {
+        for (const id of ['J1', 'J2', 'J3', 'J4']) {
+          partidaB.jogarCarta(id, 0);
+        }
+      }
+      expect(partidaB.resultadosVazas).toEqual([2, 1, 0]);
+      expect(partidaB.maoEncerrada).toBe(true);
+      expect(partidaB.vencedorMao).toBe(2);
+      expect(partidaB.duplas[2].pontos).toBe(1);
+      expect(partidaB.duplas[1].pontos).toBe(0);
+    });
+
+    test('CT19 - Empate nas duas primeiras rodadas ([0, 0, 1]) e empate triplo ([0, 0, 0]) em mãos jogadas', () => {
+      // Cenário A: 1ª e 2ª empatam, Dupla 1 vence a 3ª ([0, 0, 1]) -> Dupla 1 leva a mão
+      const partidaA = new PartidaTrucoPaulista();
+      partidaA.iniciarNovaMao();
+      partidaA.vira = new Carta('4', 'Ouros'); // Manilha: 5
+
+      partidaA.jogadores[0].mao = [new Carta('3', 'Copas'), new Carta('2', 'Copas'), new Carta('5', 'Paus')];
+      partidaA.jogadores[1].mao = [new Carta('3', 'Paus'), new Carta('2', 'Paus'), new Carta('A', 'Espadas')];
+      partidaA.jogadores[2].mao = [new Carta('4', 'Copas'), new Carta('6', 'Ouros'), new Carta('7', 'Ouros')];
+      partidaA.jogadores[3].mao = [new Carta('4', 'Espadas'), new Carta('6', 'Copas'), new Carta('7', 'Copas')];
+
+      for (let rodada = 0; rodada < 3; rodada++) {
+        for (const id of ['J1', 'J2', 'J3', 'J4']) {
+          partidaA.jogarCarta(id, 0);
+        }
+      }
+      expect(partidaA.resultadosVazas).toEqual([0, 0, 1]);
+      expect(partidaA.maoEncerrada).toBe(true);
+      expect(partidaA.vencedorMao).toBe(1);
+      expect(partidaA.duplas[1].pontos).toBe(1);
+
+      // Cenário B: As 3 rodadas empatam ([0, 0, 0]) -> mão encerra com vencedorMao = 0 e ninguém pontua
+      const partidaB = new PartidaTrucoPaulista();
+      partidaB.iniciarNovaMao();
+      partidaB.vira = new Carta('4', 'Ouros'); // Manilha: 5
+
+      partidaB.jogadores[0].mao = [new Carta('3', 'Copas'), new Carta('2', 'Copas'), new Carta('A', 'Copas')];
+      partidaB.jogadores[1].mao = [new Carta('3', 'Paus'), new Carta('2', 'Paus'), new Carta('A', 'Paus')];
+      partidaB.jogadores[2].mao = [new Carta('4', 'Copas'), new Carta('6', 'Ouros'), new Carta('7', 'Ouros')];
+      partidaB.jogadores[3].mao = [new Carta('4', 'Espadas'), new Carta('6', 'Copas'), new Carta('7', 'Copas')];
+
+      for (let rodada = 0; rodada < 3; rodada++) {
+        for (const id of ['J1', 'J2', 'J3', 'J4']) {
+          partidaB.jogarCarta(id, 0);
+        }
+      }
+      expect(partidaB.resultadosVazas).toEqual([0, 0, 0]);
+      expect(partidaB.maoEncerrada).toBe(true);
+      expect(partidaB.vencedorMao).toBe(0);
+      expect(partidaB.duplas[1].pontos).toBe(0);
+      expect(partidaB.duplas[2].pontos).toBe(0);
+      expect(() => partidaB.jogarCarta('J1', 0)).toThrow('A mão já está encerrada');
     });
   });
 });
